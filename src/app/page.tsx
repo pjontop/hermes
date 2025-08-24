@@ -36,8 +36,8 @@ export default function Home() {
       bgColor: "#0D0716",
       textColor: "#fff",
       links: [
-        { label: "Company", ariaLabel: "About Company" },
-        { label: "Careers", ariaLabel: "About Careers" }
+        { label: "Company", href: "/about/company", ariaLabel: "About Company" },
+        { label: "Careers", href: "/about/careers", ariaLabel: "About Careers" }
       ]
     },
     {
@@ -45,8 +45,8 @@ export default function Home() {
       bgColor: "#170D27",
       textColor: "#fff",
       links: [
-        { label: "Featured", ariaLabel: "Featured Projects" },
-        { label: "Case Studies", ariaLabel: "Project Case Studies" }
+        { label: "Featured", href: "/projects/featured", ariaLabel: "Featured Projects" },
+        { label: "Case Studies", href: "/projects/case-studies", ariaLabel: "Project Case Studies" }
       ]
     },
     {
@@ -54,9 +54,9 @@ export default function Home() {
       bgColor: "#271E37",
       textColor: "#fff",
       links: [
-        { label: "Email", ariaLabel: "Email us" },
-        { label: "Twitter", ariaLabel: "Twitter" },
-        { label: "LinkedIn", ariaLabel: "LinkedIn" }
+        { label: "Email", href: "mailto:info@example.com", ariaLabel: "Email us" },
+        { label: "Twitter", href: "https://twitter.com/", ariaLabel: "Twitter" },
+        { label: "LinkedIn", href: "https://linkedin.com/", ariaLabel: "LinkedIn" }
       ]
     }
   ];
@@ -139,13 +139,6 @@ export default function Home() {
           spotlightRadius={300}
           particleCount={12}
           glowColor="132, 0, 255"
-          messages={[
-            "✨ Your privacy, your rules.",
-            "💬 Chat freely with friends & communities.",
-            "🔒 End-to-end encryption, always on.",
-            "⚡ Fast. Secure. Reliable.",
-            "🌍 Built for people, not advertisers."
-          ]}
         />
       </div>
 
