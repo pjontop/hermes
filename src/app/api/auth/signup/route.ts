@@ -43,17 +43,17 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Signup error:', error);
     
-    if (error.code === 409) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 409) {
       return NextResponse.json(
         { error: 'User already exists' },
         { status: 409 }
       );
     }
     
-    if (error.type === 'document_invalid_structure') {
+    if (error && typeof error === 'object' && 'type' in error && error.type === 'document_invalid_structure') {
       return NextResponse.json(
         { error: 'Database configuration error. Please check your Appwrite setup.' },
         { status: 500 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

@@ -13,9 +13,16 @@ import { useTypingTracker } from "@/hooks/useTypingTracker";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 
+interface TypingData {
+  averageSpeed: number;
+  speedVariance: number;
+  keyTimingProfile: number[];
+  sampleCount: number;
+}
+
 interface SmashSetupProps {
   className?: string;
-  onPatternSet?: (pattern: string, typingData?: any) => void;
+  onPatternSet?: (pattern: string, typingData?: TypingData) => void;
   onBack?: () => void;
   userEmail?: string;
 }
@@ -99,10 +106,18 @@ export function SmashSetup({ className, onPatternSet, onBack, userEmail }: Smash
     const typingPattern = getTypingPattern();
     console.log('Typing pattern:', typingPattern);
     
+    // Convert typing pattern to expected format
+    const typingData: TypingData | undefined = typingPattern ? {
+      averageSpeed: averageSpeed,
+      speedVariance: typingPattern.variance,
+      keyTimingProfile: typingPattern.intervals,
+      sampleCount: typingPattern.intervals.length
+    } : undefined;
+    
     // Check if we're in standalone mode (user is already logged in)
     if (user && (!onPatternSet || onPatternSet.toString() === '() => {}')) {
       // Standalone mode - set pattern for logged-in user
-      const success = await setSmashPattern(pattern, user, typingPattern);
+      const success = await setSmashPattern(pattern, user, typingData);
       if (success) {
         router.push('/dashboard');
       } else {
@@ -110,7 +125,7 @@ export function SmashSetup({ className, onPatternSet, onBack, userEmail }: Smash
       }
     } else {
       // Callback mode - during signup flow
-      onPatternSet && onPatternSet(pattern, typingPattern);
+      onPatternSet && onPatternSet(pattern, typingData);
     }
   };
 

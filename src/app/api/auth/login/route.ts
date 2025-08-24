@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
 
     console.log('Login successful, token set');
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
     
-    if (error.type === 'collection_not_found') {
+    if (error && typeof error === 'object' && 'type' in error && error.type === 'collection_not_found') {
       return NextResponse.json(
         { error: 'Database configuration error. Please check your Appwrite setup.' },
         { status: 500 }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

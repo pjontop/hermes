@@ -3,7 +3,6 @@
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
 import CardNav from '@/components/ui/CardNav/CardNav';
 import Beams from '@/components/ui/Beams';
 import SplitText from "@/components/ui/SplitText";

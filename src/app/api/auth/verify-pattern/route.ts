@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     console.log('Smash pattern verified, full authentication complete');
     return response;
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Verify smash pattern error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

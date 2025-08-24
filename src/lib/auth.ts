@@ -54,7 +54,7 @@ export const createUser = async (email: string, password: string, name: string):
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
     console.log('User already exists with email:', email);
-    const error = new Error('User already exists') as any;
+    const error = new Error('User already exists') as Error & { code: number };
     error.code = 409;
     throw error;
   }

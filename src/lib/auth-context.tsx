@@ -9,15 +9,28 @@ interface User {
   signupStep?: number;
 }
 
+interface TempUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+interface TypingData {
+  averageSpeed: number;
+  speedVariance: number;
+  keyTimingProfile: number[];
+  sampleCount: number;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  tempUser: any | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; needsPattern?: boolean; tempUser?: any }>;
-  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string; user?: any }>;
+  tempUser: TempUser | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; needsPattern?: boolean; tempUser?: TempUser }>;
+  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => Promise<void>;
-  setSmashPattern: (pattern: string, user: any, typingData?: any) => Promise<boolean>;
-  verifySmashPattern: (pattern: string, tempUser: any, typingData?: any) => Promise<boolean>;
+  setSmashPattern: (pattern: string, user: User, typingData?: TypingData) => Promise<boolean>;
+  verifySmashPattern: (pattern: string, tempUser: TempUser, typingData?: TypingData) => Promise<boolean>;
   checkHasPattern: (userId: string) => Promise<boolean>;
 }
 
@@ -26,7 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tempUser, setTempUser] = useState<any | null>(null);
+  const [tempUser, setTempUser] = useState<TempUser | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -46,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; needsPattern?: boolean; tempUser?: any }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; needsPattern?: boolean; tempUser?: TempUser }> => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -78,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string; user?: any }> => {
+  const signup = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string; user?: User }> => {
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -110,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const setSmashPattern = async (pattern: string, user: any, typingData?: any): Promise<boolean> => {
+  const setSmashPattern = async (pattern: string, user: User, typingData?: TypingData): Promise<boolean> => {
     try {
       const response = await fetch('/api/auth/set-pattern', {
         method: 'POST',
@@ -136,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const verifySmashPattern = async (pattern: string, tempUser: any, typingData?: any): Promise<boolean> => {
+  const verifySmashPattern = async (pattern: string, tempUser: TempUser, typingData?: TypingData): Promise<boolean> => {
     try {
       const response = await fetch('/api/auth/verify-pattern', {
         method: 'POST',

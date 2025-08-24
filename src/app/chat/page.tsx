@@ -33,7 +33,7 @@ export default function ChatPage() {
       <div className="border rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Chat Interface</h2>
         <p className="text-muted-foreground">
-          This is a protected page. You can only see this because you're authenticated.
+          This is a protected page. You can only see this because you&rsquo;re authenticated.
         </p>
         <div className="mt-4 p-4 bg-muted rounded">
           <p><strong>User ID:</strong> {user.id}</p>

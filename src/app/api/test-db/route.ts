@@ -35,12 +35,12 @@ export async function GET(request: NextRequest) {
       }))
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Database test error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message,
-      type: error.type || 'unknown'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      type: (error && typeof error === 'object' && 'type' in error) ? error.type : 'unknown'
     }, { status: 500 });
   }
 }

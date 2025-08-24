@@ -13,9 +13,16 @@ import { useTypingTracker } from "@/hooks/useTypingTracker";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 
+interface TypingData {
+  averageSpeed: number;
+  speedVariance: number;
+  keyTimingProfile: number[];
+  sampleCount: number;
+}
+
 interface SmashVerificationProps {
   className?: string;
-  onVerify?: (pattern: string, typingData?: any) => void;
+  onVerify?: (pattern: string, typingData?: TypingData) => void;
   onBack?: () => void;
   userEmail?: string;
   standalone?: boolean;
@@ -86,14 +93,24 @@ export function SmashVerification({
     stopTracking();
   };
 
-  const handleVerify = async () => {
-    if (!pattern) {
+    const handleVerify = async () => {
+    stopTracking();
+    
+    if (!pattern.trim()) {
       setError("Please enter your smash pattern");
       return;
     }
 
     const typingPattern = getTypingPattern();
     console.log('Verification typing pattern:', typingPattern);
+    
+    // Convert typing pattern to expected format
+    const typingData: TypingData | undefined = typingPattern ? {
+      averageSpeed: averageSpeed,
+      speedVariance: typingPattern.variance,
+      keyTimingProfile: typingPattern.intervals,
+      sampleCount: typingPattern.intervals.length
+    } : undefined;
     
     setAttempts(prev => prev + 1);
     
@@ -103,7 +120,13 @@ export function SmashVerification({
       setError("");
       
       try {
-        const success = await verifySmashPattern(pattern, { email: userEmail }, typingPattern);
+        // Create a proper TempUser object with minimal required fields
+        const tempUser = { 
+          id: '', // This will be resolved in the backend 
+          email: userEmail,
+          name: '' // This will be resolved in the backend
+        };
+        const success = await verifySmashPattern(pattern, tempUser, typingData);
         if (success) {
           router.push('/dashboard');
         } else {
@@ -116,7 +139,7 @@ export function SmashVerification({
       }
     } else if (onVerify) {
       // Handle callback mode
-      onVerify(pattern, typingPattern);
+      onVerify(pattern, typingData);
     }
   };
 
@@ -192,7 +215,7 @@ export function SmashVerification({
               Ready to smash?
             </CardTitle>
             <CardDescription>
-              Click 'Start Recording' and recreate your pattern while watching the virtual keyboard light up.
+              Click &lsquo;Start Recording&rsquo; and recreate your pattern while watching the virtual keyboard light up.
             </CardDescription>
           </CardHeader>
         <CardContent className="space-y-4">

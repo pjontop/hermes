@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Check pattern error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
