@@ -1,12 +1,25 @@
 import { Client, Databases, Query } from 'appwrite';
 
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
+
+if (!endpoint) {
+  console.error('NEXT_PUBLIC_APPWRITE_ENDPOINT is not defined in environment variables');
+  throw new Error('Appwrite endpoint is required');
+}
+
+if (!projectId) {
+  console.error('NEXT_PUBLIC_APPWRITE_PROJECT_ID is not defined in environment variables');
+  throw new Error('Appwrite project ID is required');
+}
+
 export const clientBrowser = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+  .setEndpoint(endpoint)
+  .setProject(projectId);
 
 export const clientServer = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+  .setEndpoint(endpoint)
+  .setProject(projectId);
 
 if (process.env.APPWRITE_API_KEY) {
   try {
