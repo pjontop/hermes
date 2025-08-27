@@ -1,0 +1,96 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: hermes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hermes_chat
+      POSTGRES_USER: hermes_user
+      POSTGRES_PASSWORD: hermes_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - hermes-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes_user -d hermes_chat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and session management (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: hermes-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hermes-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Hermes Chat Server
+  chat-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: hermes-chat-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://hermes_user:hermes_pass@postgres:5432/hermes_chat
+      JWT_SECRET: your_super_secure_jwt_secret_key_change_me
+      FRONTEND_URL: http://localhost:3000
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - hermes-network
+    volumes:
+      - ./server/prisma:/app/prisma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Frontend (optional - for full containerization)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: hermes-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SERVER_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - chat-server
+    networks:
+      - hermes-network
+
+networks:
+  hermes-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

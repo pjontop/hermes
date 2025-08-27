@@ -197,9 +197,11 @@ const CardNav: React.FC<CardNavProps> = ({
             type="button"
             className="card-nav-cta-button hidden md:inline-flex items-center justify-center border-0 rounded-[calc(0.75rem-0.2rem)] px-4 h-full font-medium cursor-pointer transition-colors duration-300"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+            onClick={() => { window.location.href = "/auth/signup"; }}
           >
             Get Started
           </button>
+
         </div>
 
         <div

@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for chat system with built-in authentication
+model User {
+  id                       String    @id @default(cuid())
+  email                    String    @unique
+  name                     String
+  avatar                   String?
+  publicKey                String // RSA public key for E2E encryption
+  passwordHash             String // Hashed password for authentication
+  isEmailVerified          Boolean   @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  signupStep               Int       @default(0) // 0: email/password, 1: pattern setup, 2: complete
+  lastLoginAt              DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  // Relationships
+  sentMessages  Message[]      @relation("MessageSender")
+  chatMembers   ChatMember[]
+  keyExchanges  KeyExchange[]
+  smashPatterns SmashPattern[]
+  authSessions  AuthSession[]
+
+  @@map("users")
+}
+
+// SMASH patterns for gesture-based authentication
+model SmashPattern {
+  id          String @id @default(cuid())
+  userId      String
+  patternHash String // Hashed SMASH pattern data
+  salt        String // Salt for pattern hashing
+
+  // Typing dynamics data
+  averageSpeed     Float? // Average typing speed
+  speedVariance    Float? // Speed variance
+  keyTimingProfile Json? // Key timing patterns as JSON
+  sampleCount      Int    @default(1) // Number of samples collected
+
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  isLocked    Boolean   @default(false)
+  lockedUntil DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("smash_patterns")
+}
+
+// Authentication sessions
+model AuthSession {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique // JWT token or session identifier
+  refreshToken String?  @unique
+  expiresAt    DateTime
+  deviceInfo   String? // Browser/device information
+  ipAddress    String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
+}
+
+// Chat rooms (direct messages or groups)
+model Chat {
+  id          String   @id @default(cuid())
+  type        ChatType @default(DIRECT)
+  name        String? // For group chats
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  members      ChatMember[]
+  messages     Message[]
+  keyExchanges KeyExchange[]
+
+  @@map("chats")
+}
+
+// Chat membership and permissions
+model ChatMember {
+  id       String         @id @default(cuid())
+  userId   String
+  chatId   String
+  role     ChatMemberRole @default(MEMBER)
+  joinedAt DateTime       @default(now())
+  leftAt   DateTime?
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId])
+  @@map("chat_members")
+}
+
+// Encrypted messages
+model Message {
+  id               String      @id @default(cuid())
+  chatId           String
+  senderId         String
+  encryptedContent String // AES encrypted message content
+  messageType      MessageType @default(TEXT)
+  replyToId        String? // For message replies
+  isEdited         Boolean     @default(false)
+  editedAt         DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime    @default(now())
+
+  // Relationships
+  sender  User      @relation("MessageSender", fields: [senderId], references: [id])
+  chat    Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  replyTo Message?  @relation("MessageReply", fields: [replyToId], references: [id])
+  replies Message[] @relation("MessageReply")
+
+  @@map("messages")
+}
+
+// Key exchange for E2E encryption
+model KeyExchange {
+  id              String   @id @default(cuid())
+  chatId          String
+  userId          String
+  encryptedAESKey String // AES key encrypted with user's RSA public key
+  keyVersion      Int      @default(1)
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id])
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId, keyVersion])
+  @@map("key_exchanges")
+}
+
+// Enums
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+enum ChatMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
